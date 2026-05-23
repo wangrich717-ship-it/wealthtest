@@ -1,0 +1,1083 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>你的财富卡点，藏在什么地方</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #F7EFE2;
+      --surface:   #FDF8F1;
+      --card:      #FFFCF6;
+      --card-2:    #FDF6EA;
+      --gold:      #A8680A;
+      --gold-lt:   #C4800E;
+      --gold-dim:  rgba(168,104,10,0.52);
+      --gold-glow: rgba(168,104,10,0.14);
+      --text:      #231408;
+      --text-2:    rgba(35,20,8,0.58);
+      --text-3:    rgba(35,20,8,0.30);
+      --border:    rgba(168,104,10,0.16);
+      --border-2:  rgba(168,104,10,0.30);
+      --rust:      #8B3A2A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 10%,  rgba(218,168,72,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 85% 8%,   rgba(200,140,60,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 40% at 90% 90%,  rgba(155,75,35,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 35% at 8%  88%,  rgba(190,120,50,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 50% 50%,  rgba(220,175,85,0.05) 0%, transparent 60%),
+        #F7EFE2;
+      color: var(--text);
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas background ── */
+    #cvs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    /* ── Layout ── */
+    .wrap {
+      position: relative;
+      z-index: 2;
+      width: min(960px, 88vw);
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── Watermark ── */
+    .watermark {
+      position: fixed;
+      right: 22px;
+      bottom: 18px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--text-3);
+      z-index: 1;
+    }
+
+    /* ══════════════════════════════════
+       HERO
+    ══════════════════════════════════ */
+    #hero {
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      position: relative;
+      max-width: 680px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12.5px;
+      font-weight: 400;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.15s ease forwards;
+    }
+    .eyebrow::before,
+    .eyebrow::after {
+      content: '';
+      flex-shrink: 0;
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.45;
+    }
+
+    h1 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(38px, 5.4vw, 70px);
+      font-weight: 500;
+      line-height: 1.25;
+      letter-spacing: 0.025em;
+      color: var(--text);
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.32s ease forwards;
+    }
+    h1 em {
+      font-style: normal;
+      color: var(--gold-lt);
+    }
+
+    .subtitle {
+      font-size: 15.5px;
+      line-height: 2;
+      color: var(--text-2);
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.48s ease forwards;
+    }
+
+    .tags {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.6s ease forwards;
+    }
+    .tag {
+      padding: 7px 18px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-3);
+      font-size: 12.5px;
+      letter-spacing: 0.09em;
+      background: rgba(200,164,74,0.025);
+    }
+
+    .start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 48px;
+      background: var(--text);
+      border: none;
+      border-radius: 9999px;
+      color: var(--bg);
+      font-family: 'Noto Serif SC', serif;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.72s ease forwards;
+    }
+    .start-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.10) 50%, transparent 100%);
+      transform: translateX(-120%);
+      transition: transform 0.5s ease;
+    }
+    .start-btn:hover {
+      background: #3a2216;
+      box-shadow: 0 12px 36px rgba(35,20,8,0.20);
+      transform: translateY(-1px);
+    }
+    .start-btn:hover::after { transform: translateX(120%); }
+    .start-btn .arrow {
+      font-size: 18px;
+      transition: transform 0.25s ease;
+      font-family: inherit;
+    }
+    .start-btn:hover .arrow { transform: translateX(5px); }
+
+    /* ══════════════════════════════════
+       QUIZ
+    ══════════════════════════════════ */
+    #quiz { position: relative; padding: 60px 0 100px; }
+
+    .quiz-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 44px;
+      gap: 20px;
+    }
+
+    .nav-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-2);
+      font-size: 13px;
+      letter-spacing: 0.07em;
+      padding: 9px 18px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: inherit;
+      font-weight: 300;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { border-color: var(--border-2); color: var(--text); }
+    .nav-btn:disabled { opacity: 0.22; cursor: default; pointer-events: none; }
+
+    /* Progress dots */
+    .prog-dots {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+      justify-content: center;
+    }
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(200,164,74,0.18);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .dot.done  { background: var(--gold); opacity: 0.7; }
+    .dot.curr  {
+      background: var(--gold-lt);
+      width: 16px;
+      border-radius: 3px;
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .q-counter {
+      flex-shrink: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      color: var(--text-3);
+      min-width: 52px;
+      text-align: right;
+    }
+
+    /* Question card */
+    .q-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: clamp(32px, 5vw, 58px);
+      box-shadow:
+        0 12px 48px rgba(100,55,10,0.10),
+        0 2px 8px  rgba(100,55,10,0.06);
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Gold line top accent */
+    .q-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+      opacity: 0.28;
+    }
+
+    .q-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 12.5px;
+      letter-spacing: 0.28em;
+      color: var(--gold-dim);
+      margin-bottom: 22px;
+      text-transform: uppercase;
+    }
+
+    .question {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(19px, 2.3vw, 27px);
+      font-weight: 400;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 38px;
+      letter-spacing: 0.02em;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: stretch;
+      background: transparent;
+      border: 1px solid rgba(200,164,74,0.10);
+      border-radius: 3px;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      overflow: hidden;
+      font-family: inherit;
+    }
+    .opt-letter {
+      flex-shrink: 0;
+      width: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(200,164,74,0.035);
+      border-right: 1px solid rgba(200,164,74,0.10);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 19px;
+      color: var(--gold-dim);
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .opt-text {
+      padding: 15px 18px;
+      flex: 1;
+      font-size: 14.5px;
+      line-height: 1.8;
+      color: var(--text-2);
+      letter-spacing: 0.015em;
+      transition: color 0.2s ease;
+      font-weight: 300;
+    }
+
+    .option:hover {
+      border-color: var(--border-2);
+      background: rgba(200,164,74,0.028);
+    }
+    .option:hover .opt-letter {
+      background: rgba(200,164,74,0.075);
+      color: var(--gold);
+      border-right-color: rgba(200,164,74,0.20);
+    }
+    .option:hover .opt-text { color: var(--text); }
+
+    .option.selected {
+      border-color: rgba(200,164,74,0.42);
+      background: rgba(200,164,74,0.05);
+    }
+    .option.selected .opt-letter {
+      background: rgba(200,164,74,0.11);
+      color: var(--gold-lt);
+      border-right-color: rgba(200,164,74,0.32);
+    }
+    .option.selected .opt-text { color: var(--text); }
+
+    /* ══════════════════════════════════
+       RESULT
+    ══════════════════════════════════ */
+    #result { padding: 60px 0 100px; }
+
+    .res-header {
+      text-align: center;
+      padding-bottom: 28px;
+    }
+
+    .res-eyebrow {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12px;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 26px;
+    }
+
+    .res-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(26px, 3.8vw, 50px);
+      font-weight: 500;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 22px;
+      letter-spacing: 0.025em;
+    }
+
+    .res-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 22px;
+      border: 1px solid var(--border-2);
+      border-radius: 2px;
+      background: rgba(168,104,10,0.06);
+      color: var(--gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 14px;
+      letter-spacing: 0.18em;
+    }
+    .res-badge .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .res-divider {
+      width: 50px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 20px auto;
+      opacity: 0.45;
+    }
+
+    .core-belief {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: rgba(168,104,10,0.055);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-family: 'Noto Serif SC', serif;
+      font-size: 14px;
+      font-style: italic;
+      color: var(--text-2);
+      letter-spacing: 0.04em;
+      line-height: 1.7;
+    }
+    .core-belief::before { content: '核心信念：「'; color: var(--gold); font-style: normal; }
+    .core-belief::after  { content: '」'; color: var(--gold); font-style: normal; }
+
+    .gift-block {
+      background: rgba(168,104,10,0.04);
+      border: 1px solid var(--border);
+      border-top: 2px solid rgba(168,104,10,0.28);
+      padding: clamp(24px, 3.5vw, 38px) clamp(24px, 3.5vw, 42px);
+    }
+
+    /* Stacked sections */
+    .res-sections { display: flex; flex-direction: column; gap: 2px; }
+
+    .r-sec {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: clamp(24px, 3.5vw, 42px);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .r-sec:first-child  { border-radius: 4px 4px 0 0; }
+    .r-sec:last-child   { border-radius: 0 0 4px 4px; }
+    .r-sec + .r-sec     { border-top: none; }
+
+    .r-sec-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .r-sec h3 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 18px;
+      letter-spacing: 0.03em;
+    }
+    .r-sec p {
+      font-size: 14.5px;
+      line-height: 2.05;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+    .r-sec p + p { margin-top: 14px; }
+    .r-sec ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      margin-top: 4px;
+    }
+    .r-sec li {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 14.5px;
+      line-height: 1.9;
+      color: var(--text-2);
+    }
+    .r-sec li::before {
+      content: '—';
+      color: var(--gold);
+      opacity: 0.5;
+      flex-shrink: 0;
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* Quote block */
+    .quote-block {
+      background: linear-gradient(135deg, rgba(122,48,32,0.08) 0%, rgba(168,104,10,0.03) 100%);
+      border: 1px solid var(--border);
+      border-left: 2px solid rgba(168,104,10,0.40);
+      padding: clamp(24px, 3.5vw, 38px) clamp(24px, 3.5vw, 42px);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .quote-mark {
+      display: block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      line-height: 0.75;
+      color: var(--gold);
+      opacity: 0.30;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    .quote-text {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(16px, 1.9vw, 21px);
+      line-height: 1.9;
+      color: var(--text);
+      font-weight: 400;
+      letter-spacing: 0.03em;
+    }
+
+    .res-footer {
+      text-align: center;
+      margin-top: 60px;
+    }
+    .restart-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 44px;
+      background: transparent;
+      border: 1px solid var(--border-2);
+      border-radius: 2px;
+      color: var(--text-2);
+      font-family: 'Noto Serif SC', serif;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: border-color 0.3s, color 0.3s, background 0.3s;
+    }
+    .restart-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold-lt);
+      background: rgba(200,164,74,0.04);
+    }
+
+    /* ══════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════
+       MOBILE
+    ══════════════════════════════════ */
+    @media (max-width: 640px) {
+      .wrap { width: 92vw; padding: 0; }
+      .quiz-top { margin-bottom: 28px; }
+      .q-counter { display: none; }
+      .prog-dots { gap: 4px; }
+      .dot { width: 4px; height: 4px; }
+      .dot.curr { width: 12px; }
+      h1 { font-size: clamp(32px, 9vw, 48px); }
+      .start-btn { width: 100%; justify-content: center; }
+      .restart-btn { width: 100%; justify-content: center; }
+      .opt-letter { width: 42px; font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cvs"></canvas>
+  <div class="bg-overlay"></div>
+  <div class="watermark">财富卡点测试 · 心理学自我探索</div>
+
+  <main class="wrap">
+
+    <!-- ── Hero ── -->
+    <section id="hero">
+      <div class="hero-inner">
+        <div class="eyebrow">财富心理卡点测试</div>
+        <h1>你的财富卡点<br><em>藏在什么地方</em></h1>
+        <div class="subtitle">10道情境题，识别你赚钱路上真正卡住的心理机制</div>
+        <div class="tags">
+          <span class="tag">安全感</span>
+          <span class="tag">行动力</span>
+          <span class="tag">配得感</span>
+          <span class="tag">聚焦力</span>
+          <span class="tag">身份升级</span>
+        </div>
+        <button class="start-btn" onclick="startTest()">
+          开始测试 <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Quiz ── -->
+    <section id="quiz" class="hidden">
+      <div class="quiz-top">
+        <button id="heroBackBtn" class="nav-btn" onclick="backToHero()">← 返回</button>
+        <div class="prog-dots" id="progDots"></div>
+        <div class="q-counter" id="qCounter"></div>
+      </div>
+
+      <div class="q-card" id="qCard">
+        <div id="qNum"      class="q-num"></div>
+        <div id="question"  class="question"></div>
+        <div id="options"   class="options"></div>
+        <div style="display:flex;justify-content:flex-start;margin-top:28px;">
+          <button id="backBtn" class="nav-btn" onclick="prevQuestion()">← 上一题</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Result ── -->
+    <section id="result" class="hidden">
+      <div id="resultContent"></div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ── Particle background ── */
+    (function () {
+      const cvs = document.getElementById('cvs');
+      const ctx = cvs.getContext('2d');
+      let W, H, pts = [];
+
+      function resize() {
+        W = cvs.width  = window.innerWidth;
+        H = cvs.height = window.innerHeight;
+      }
+
+      function mkPt() {
+        return {
+          x: Math.random() * W,
+          y: H + Math.random() * 30,
+          r: Math.random() * 1.2 + 0.2,
+          a: Math.random() * 0.30 + 0.04,
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: -(Math.random() * 0.16 + 0.05),
+          decay: Math.random() * 0.0008 + 0.0003,
+          life: 1
+        };
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      pts = Array.from({ length: 55 }, () => { const p = mkPt(); p.y = Math.random() * H; return p; });
+
+      (function loop() {
+        ctx.clearRect(0, 0, W, H);
+        pts.forEach((p, i) => {
+          p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+          if (p.life <= 0 || p.y < -8) { pts[i] = mkPt(); return; }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(140,85,15,${p.a * p.life * 0.45})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    /* ── Data ── */
+    const questions = [
+      {
+        q: '面对一个"有风险但可能提升收入层级"的机会，你的第一反应更像：',
+        o: [
+          ['A', '算了，稳定一点更安心，我不想把现在的生活打乱。'],
+          ['B', '我需要先学习、研究、准备，等更有把握再说。'],
+          ['C', '我会同时想很多方案，最后反而不知道选哪个。'],
+          ['D', '我会怀疑自己配不配、能不能撑得住这个机会。'],
+          ['E', '我知道这是机会，但真正要跨出去时会莫名拖住。']
+        ]
+      },
+      {
+        q: '你现在和钱的关系，更接近哪一种？',
+        o: [
+          ['A', '不算糟，但增长很慢，我更怕失去已有的安全感。'],
+          ['B', '懂了很多道理，也收藏了很多方法，但行动很少。'],
+          ['C', '一直很忙，尝试很多，但钱没有明显积累。'],
+          ['D', '机会偶尔来过，但我总觉得那不属于我。'],
+          ['E', '我已经摸到门槛了，但好像总差临门一脚。']
+        ]
+      },
+      {
+        q: '当你看到别人赚到钱时，你内心最真实的声音是：',
+        o: [
+          ['A', '他们胆子真大，但我不一定敢那样做。'],
+          ['B', '他们一定掌握了我还没学会的东西。'],
+          ['C', '我是不是也该换个方向？也许那个更赚钱。'],
+          ['D', '他们可以，我不一定可以。'],
+          ['E', '我其实也能做到，只是我还没有真正站上去。']
+        ]
+      },
+      {
+        q: '如果让你立刻做一个能带来收入增长的小行动，你最容易卡在：',
+        o: [
+          ['A', '担心风险、担心影响原来的稳定生活。'],
+          ['B', '觉得方案还不够好，想再优化一下。'],
+          ['C', '想法太多，每个都想做一点。'],
+          ['D', '害怕被评价，害怕别人发现我不够好。'],
+          ['E', '知道该做什么，但不知为什么迟迟没有按下开始键。']
+        ]
+      },
+      {
+        q: '你最常用哪种方式缓解赚钱焦虑？',
+        o: [
+          ['A', '降低欲望，告诉自己平稳也挺好。'],
+          ['B', '继续学习课程、看经验帖、做计划。'],
+          ['C', '找新机会、新项目、新副业，让自己忙起来。'],
+          ['D', '默默否定自己，觉得可能是我不适合。'],
+          ['E', '幻想突破后的样子，但现实动作不够坚决。']
+        ]
+      },
+      {
+        q: '你最害怕财富增长之后带来的是什么？',
+        o: [
+          ['A', '生活失控，原来的稳定被打破。'],
+          ['B', '暴露短板，被证明我其实没准备好。'],
+          ['C', '要做选择，必须放弃其他可能性。'],
+          ['D', '别人对我的期待变高，我不配承受。'],
+          ['E', '我要真正成为"能赚更多钱的人"，这让我有压力。']
+        ]
+      },
+      {
+        q: '以下哪句话最像你？',
+        o: [
+          ['A', '我不是不想赚更多，只是不想冒太大的险。'],
+          ['B', '等我准备好了，我一定会开始。'],
+          ['C', '我做了很多事，但好像没有一件真正打穿。'],
+          ['D', '我好像总会在关键机会前退回去。'],
+          ['E', '我已经不是没有能力，而是不敢换一种身份活。']
+        ]
+      },
+      {
+        q: '如果一个项目失败了，你最容易怎么解释？',
+        o: [
+          ['A', '幸好没有投入太多，不然损失更大。'],
+          ['B', '果然还是我准备得不够充分。'],
+          ['C', '也许我该试试另一个方向。'],
+          ['D', '看吧，我就知道自己不行。'],
+          ['E', '我离成功很近，但可能还是不够敢。']
+        ]
+      },
+      {
+        q: '你对"赚钱"这件事最深的矛盾是：',
+        o: [
+          ['A', '想要更多，但又怕代价太大。'],
+          ['B', '想开始，但总觉得还差一点能力。'],
+          ['C', '想抓住机会，但每个机会都让我分心。'],
+          ['D', '想拥有，但内心深处又觉得自己不配。'],
+          ['E', '想升级，但害怕升级后就不能再退回去了。']
+        ]
+      },
+      {
+        q: '如果你的财富卡点是一扇门，门后最可能写着：',
+        o: [
+          ['A', '不确定性。'],
+          ['B', '开始。'],
+          ['C', '聚焦。'],
+          ['D', '配得感。'],
+          ['E', '成为新的自己。']
+        ]
+      }
+    ];
+
+    const results = {
+      A: {
+        badge: '安全感卡点',
+        badgeColor: '#C49A12',
+        title: '你的财富卡点：安全依赖型',
+        corebelief: '不确定 = 失控 = 失去，所以要先感到安全，才能前进。',
+        intro: '你并不是一个没有野心的人。相反，你对更好的生活、更高的收入、更自由的选择权，一直有真实的渴望。只是当机会真的靠近时，你的第一反应往往不是兴奋，而是迅速进入"风险评估模式"：会不会失控？会不会影响现在的稳定？会不会一旦失败就连原本拥有的也保不住？这种反应发生得如此自然、如此迅速，以至于你可能早已习惯把它称作"理性判断"——但有时候，它其实是恐惧在借用理性的外衣。',
+        essence: '你的财富卡点本质上是一套"过度校准的安全感系统"。在心理学上，这往往与早期依恋经历有关：当一个人在成长过程中遭遇过不稳定、失去或不可预测，神经系统会自动学会"先保住已有的，再考虑更多"。这是极为聪明的生存适应——在某些情境下，它确实保护了你。但在财富增长这件事上，它变成了一个过滤器：所有机会都要先经过"会不会有损失"的筛选，大多数可能性在进入行动区之前就已被过滤掉了。',
+        pattern: '这种模式有几个典型表现：你会用"再等等"代替行动，用"稳定也挺好"掩盖内心的不甘，用"风险太大"拒绝那些其实只需要小投入的尝试。你不是不想改变，而是害怕在改变过程中，哪怕暂时地，失去对生活的掌控感。最微妙的地方在于：你对安全感的依赖，让你长期选择"确定性高但天花板低"的路径，而这些路径本身会强化你最初的那个恐惧——因为你始终没有经历过"我冒险了，没有发生最坏的事"。',
+        quote: '你不是没有机会，你是太擅长在机会靠近时先退半步。',
+        risk: '如果这个卡点继续存在，最大的风险不是"失败"，而是"停滞"。你可能永远不会遭遇剧烈的失败，因为你足够谨慎；但你也可能永远到不了那个真正让你感到自由的财富位置，因为你从未给自己真正进入高回报区的机会。更深的风险是：随着时间推移，你会越来越擅长说服自己"现在这样也还行"，直到某天你意识到，那不是真的满足，而是你把野心压得太深，已经快感受不到了。',
+        gift: '你对风险的高度敏感，本质上是一种被误用的超能力。你天生擅长识别系统性风险、保护已有成果、建立真正稳固的基础。一旦你学会把这种能力从"阻止模式"切换到"评估+行动模式"，它会成为财富路径上的巨大优势——让你成为那种"进得稳、走得远"的人，而不是冒进者。',
+        guide: [
+          '把"冒险"改写成"受控实验"：设计一个损失上限明确的小实验——最多花多少钱、多少时间、什么情况下退出。让神经系统体验"我尝试了，世界没有崩塌"。',
+          '练习"双向后悔最小化"：不只问"如果失败我会多后悔"，也要问"如果我不做，10年后的我会不会后悔"。安全感不只是保护你不失去，也是保护你不错过。',
+          '分离"情绪安全"和"实际安全"：当你感到紧张时先暂停，问自己"这是真实风险，还是神经系统的警报声"。训练自己识别两者的区别。',
+          '建立多维度安全感来源：不要只把安全感寄托于"稳定收入"一个点。每一个建立的技能、每一个满意的客户、每一次成功交付，都是更稳固的安全网。',
+          '每月做一个"安全出逃口"实验：选一个损失可控的小财富行动，做完后复盘——"失败了有多大"，用真实经验替代想象中的恐惧。'
+        ],
+        firstStep: '今天，列出一件你因为"风险太大"而一直推迟的小财富行动。然后把它缩小到这个版本：即使完全失败，你也完全承受得起。做这个缩小版，只是为了让你的神经系统体验一次"我动了，世界没有崩"。'
+      },
+      B: {
+        badge: '行动力卡点',
+        badgeColor: '#B8860A',
+        title: '你的财富卡点：过度准备型',
+        corebelief: '准备好了，才有资格开始。如果现在出手，可能会被证明"我其实不够好"。',
+        intro: '你是很容易被误解成"很上进"的人——从外表看，你确实一直在努力。你学习、收藏、研究、做计划，认真分析别人的成功路径，反复思考最优方案。但你的问题在于：大量努力停留在"准备区"，没有进入"真实反馈区"。这不是因为你懒，而是因为有一个深层的恐惧：如果在没有准备好的情况下出手，可能会被市场证明"我其实不够好"。',
+        essence: '你的财富卡点，是一套名叫"完美主义保护机制"的心理系统。在心理学上，这种模式常常与冒牌者综合征（Imposter Syndrome）有关——你内心有一个声音认为，你现在的能力并不足以支撑你想要的结果；而持续准备，让你暂时不用去面对这个可能被证伪的恐惧。学习是安全的，因为它不会被拒绝；收藏课程是安全的，因为还没开始就没有失败。但这个"安全"有代价：它让你的赚钱能力永远停留在"理论层"，无法在现实的市场反馈中长出真正的根。',
+        pattern: '你可能认出这个循环：看到一个方向，心动，开始研究；研究越深，发现不懂的越多，于是继续学；等到觉得要开始了，又发现好像还差一步；然后看到另一个更好的方向，重新开始。这个循环可以无限持续，而且每一步都感觉是认真的、有进展的——直到你某天猛然发现，自己在"准备"上花的时间，已经远远多于真正行动的时间，但现实世界里几乎没有任何可以展示的结果。',
+        quote: '你不是赚不到钱，你是一直站在入口处，反复确认门把手。',
+        risk: '如果继续这样，你会越来越擅长"理解"赚钱，却越来越难"发生"赚钱。你会积累很多认知，但缺少实际案例、真实客户、成交记录和来自现实的反馈。最深的代价是一种令人沮丧的错位感——"明明我懂这么多，为什么什么都没发生？"——而这种错位感，反过来又强化了"我还不够好，要继续准备"的信念，形成一个越来越难打破的内循环。',
+        gift: '你是那种一旦真正出手，就有可能做出质量极高的东西的人。你的深度思考、对细节的注意、对专业的追求——这些都是真实的能力。真正需要改变的不是"减少准备"，而是"把准备的终点和行动的起点分开"。当你学会在"完美"和"足够好"之间找到那条线，你会比绝大多数直接行动的人走得更稳、更远。',
+        guide: [
+          '设置"准备截止线"：给每个方向的准备阶段设定硬性时间限制，超过时间就必须进入行动，不允许追加学习。',
+          '把行动目标从"做成功"改成"拿反馈"：你的第一次出手不是去证明自己，而是去收集市场对你的真实回应。反馈是货币，不是评判。',
+          '建立 1:1 输出规则：每学习 1 小时，配套完成 1 个输出动作（发布内容、发出报价、联系潜在客户）。学习应服务于行动，而不是替代行动。',
+          '确定"够用基准"：问自己"我需要知道什么，才算够用开始"，只做到这个基准，不多准备一行。',
+          '允许前 5 次很糟糕：明确告诉自己，前 5 次交付的目的不是完美，而是建立"真实感"。糟糕的开始，比完美的沉默有价值得多。'
+        ],
+        firstStep: '选一个你已经"准备"了超过 2 周的赚钱方向，在接下来 24 小时内做出一个"最简可见版本"，让它进入真实世界——哪怕是一条招募帖、一个简单报价、一篇粗糙介绍。目的不是成功，是让自己体验"我进入真实了"。'
+      },
+      C: {
+        badge: '聚焦力卡点',
+        badgeColor: '#A84830',
+        title: '你的财富卡点：分散消耗型',
+        corebelief: '放弃任何一个可能性，都感觉是在放弃更好的自己。聚焦意味着承认自己不可能同时成为所有版本。',
+        intro: '你对机会很敏感，也很有行动力。你很少真的停着不动，甚至常常同时推进很多事：副业、项目、内容、技能、合作……你看起来一直在努力，而且你也确实在努力。但收入没有同步增长——因为你的能量像一道光，本来可以汇聚成激光，但你把它散射成了漫射光。照亮了很大一片区域，却没有一个点热得足以点燃什么。',
+        essence: '你的财富卡点，是一种名叫"可能性恐惧"的心理机制。表面上看，你好像对失去机会很敏感（FOMO）；但更深处，你可能对"承诺"本身感到恐惧。选择聚焦意味着主动放弃其他可能性，而在你的内心深处，"放弃一个选项"可能无意识地等同于"承认我不可能同时成为所有版本的自己"。于是你用"广撒网"来维持一种"我还没有真正开始"的状态——因为只要没有真正进入，就不会真正失败，也不会真正被框定。',
+        pattern: '你可能认出这个感受：一个方向刚刚有些起色，但还没有产生明显结果的时候，你开始感到坐立难安——"这个是不是没我想的那么好？""那个好像更快？""要不要同时做？"然后你切换了。每一次切换都有合理理由，每一次都是认真思考后的选择——但回头看，你的每条线都是"有开始，没结束"，没有任何一个方向经历过真正的深耕周期。',
+        quote: '你不是没有努力，你是把自己拆成了太多碎片。',
+        risk: '如果继续分散，你会逐渐进入一种"高消耗、低沉淀"的状态——每天忙碌但收入停滞，每次新开始都充满希望但很快又遇到瓶颈。更隐秘的风险是：随着尝试次数越来越多，你会越来越难相信任何一个方向"真的能成"，因为你从未给任何一个方向足够长的时间让它成。这会形成自我实现的悲观：你的分散让你永远看不到聚焦的复利，于是你永远不相信聚焦有用，于是你继续分散。',
+        gift: '你对机会的高度敏感、强大的行动力和多元兴趣，是许多人没有的天赋。当你学会聚焦，这种"能快速识别和进入新机会"的能力会成为真正的竞争优势——因为你能在一个方向打深之后，比别人更快地扩展到相关机会。真正的问题不是你想法太多，而是你还没有找到让自己愿意"专一"的那个主线。',
+        guide: [
+          '选一个"90 天主线"：只选一个最接近真实付款的方向，其他全部写进"以后清单"。90 天内不允许主动切换。',
+          '用"最快收到钱"作为排序标准：不用兴趣强度、不用潜力评分，用"谁能最快给你真实付款验证"来决定主线。',
+          '区分"了解信息"和"切换方向"：知道某件事存在，不等于现在要做它。你可以了解新机会，但不代表要行动。',
+          '给坚持设定"最小证明期"：告诉自己"这个方向至少给 90 天、接触至少 50 个潜在客户，才有资格说这条路不行"。',
+          '建立"拒绝日志"：每次有冲动开启新方向时，把它写下来，标注日期，放进"以后清单"。这个动作让大脑接受"我没有放弃它，只是排队了"。'
+        ],
+        firstStep: '今天，把你手上所有赚钱方向全部列出来，按"最接近真实付款"的顺序排名。只保留第一名作为接下来 30 天的唯一主线，其他的暂时休眠——不是放弃，是排队等候。'
+      },
+      D: {
+        badge: '配得感卡点',
+        badgeColor: '#C06840',
+        title: '你的财富卡点：自我设限型',
+        corebelief: '如果我要价太高、表现得太成功，别人会觉得我"变了"，我会失去重要的关系和认可。',
+        intro: '你可能不是没有能力，甚至别人已经多次肯定过你。但当你要真正收钱、涨价、争取机会、被更多人看见时，心里会浮现一种细微的退缩：我真的值得吗？我准备好了吗？别人会不会发现我其实没有那么厉害？这种退缩发生得如此自然，以至于你已经学会了用各种说法来解释它——"还不到时候""再提升一下""我不想显得贪心"——但真正发生的是：你在保护自己不被拒绝、不被评判、不被嫉妒。',
+        essence: '你的财富卡点是配得感不足，而配得感不足的核心，往往不是能力问题，而是"价值与自我价值感之间的断层"。在心理学上，这与"上限问题"（Upper Limit Problem）密切相关：你的内心深处有一个关于"我能拥有多少"的无形天花板，一旦你接近这个天花板，就会自动触发降低自己的行为——降价、谦让、推辞机会。这不是因为你真的不值，而是因为"拥有更多"在潜意识里触发了危险信号：失去关系、被嫉妒、不再被喜欢、被期待更多。',
+        pattern: '这种模式的隐蔽性在于：你会用非常合理的语言来包装它。"我只是觉得还不够好""我不想太功利""他们可能付不起这个价格"——听起来都很有道理，但这些理由之所以总是在你面对钱的时候出现，是因为它们不是分析结果，而是保护机制。你在用"替别人考虑"来保护自己不用承担被拒绝的风险。',
+        quote: '你最需要跨过的，不是能力门槛，而是"我值得"的门槛。',
+        risk: '如果这个模式持续存在，你会不断创造价值，却很难把价值转化为合理回报。久而久之，会产生一种深层的委屈：你不断付出、不断让步、不断降低要价，而那些"没你懂那么多"的人却在收更多的钱。这种委屈不会让你变得更自信，它会让你越来越怀疑"努力到底值不值得"，最终可能转化为对赚钱本身的抗拒。',
+        gift: '你的谦逊、对关系的珍视、对被评判的敏感——这些都是真实的价值。你比很多人更善于建立信任、维系关系、感知他人需要。当你学会把"配得感"和"关系安全感"分开处理，你会发现：你完全可以既赚到合理的钱，也保持你珍视的关系。真正会离开的人，本来就不属于你的圈层；而真正重要的关系，能够承受你变好。',
+        guide: [
+          '练习"直接报价"：下一次有人问价格，给出一个具体数字，然后保持沉默，不要急着解释或降价。价格是价值表达，不是人格审判。',
+          '建立"价值证据库"：每周记录 3 件你真实交付的成果——你解决了什么问题、帮到了谁、对方的反馈是什么。用事实替代"我不够好"的信念。',
+          '重新定义"被拒绝"：别人不买，不是"我不值钱"，而是"这次匹配没发生"。把价格当作滤镜，而不是评判。',
+          '停止"预先讨好"：你不需要在还没开始之前就用免费、打折、过度服务来购买对方的好感。真正适合你的客户，会因为你的价值而来。',
+          '做一次"全价实验"：选一个你一直打折或免费提供的服务，下一次按全价报出来。先做一次，感受那个"我说出来了，世界没有崩"的体验。'
+        ],
+        firstStep: '下一次有人向你咨询、求助或提出合作时，在回应之前停顿 5 秒。在心里问自己："如果我完全相信自己的价值，我会怎么回应？"然后按那个答案说出来。'
+      },
+      E: {
+        badge: '身份升级卡点',
+        badgeColor: '#8A6A20',
+        title: '你的财富卡点：临界突破型',
+        corebelief: '如果我真的成功了、成为那个"更强的我"，原来那个我就会消失。升级，意味着失去熟悉的自己。',
+        intro: '你已经不是完全没开始的人了。你有能力、有经验、有真实的成果，也隐约知道自己可以去到更高的层级。你的问题不在于看不见路，甚至不在于不知道方向——你知道。你的卡点在于：当你真正要跨过去的那一步，会感到一种复杂的内在阻力，像是有什么东西在拉着你往回走。那个东西不是懒惰，不是无能，而是一种更深的东西：对失去"原来的自己"的隐性恐惧。',
+        essence: '你的财富卡点是身份升级阻抗，而这种阻抗的核心，是一种鲜为人知的心理现象：转型悲痛（Transformation Grief）。当一个人真正升级到新的身份时，旧身份必须被放下——而放下，即使是放下一个正在限制你的旧版本，也是一种失去。旧身份意味着：熟悉的关系结构、熟悉的自我叙事、熟悉的安全感边界。新身份意味着：新的要求、新的期待、新的孤独。你并不是在逃避成功，你是在保护那个"熟悉的旧版本的自己"。',
+        pattern: '你可能多次接近过突破点——一个更高的价格、一个更大的项目、一次更有影响力的亮相——但每次在最后那一步，你会感到一种莫名的减速：拖延、犹豫、主动降低目标、或者用"时机不对"把自己拉回来。最奇特的是，这种减速往往不是因为外部条件不成熟，而是因为某种内在的不适在问："如果我真的变成那个人，我还是我吗？那些爱现在这个我的人，还会爱那个我吗？"',
+        quote: '你不是差一步，你是在旧身份和新身份之间反复拉扯。',
+        risk: '如果不处理这个卡点，最大的风险是陷入"慢性高原期"：你有能力，但不敢放大；有机会，但不敢承接；有清晰的路，但总是差最后一步。这不是普通的停滞，而是一种极度耗能的停滞——因为你能看见那扇门，能感受到门后的世界，但一次次选择不推开它。这种"反复接近、反复退回"的模式，会随时间积累成深重的自我怀疑：不是"我不行"，而是"我为什么就是不愿意真正进去"。',
+        gift: '你的自我觉察能力、对内心深处拉力的敏感、以及你已经走到临界点这个事实本身——都是极其稀缺的资产。大多数人甚至不知道自己有卡点，你已经能精确地感知到"是什么在拉着我"。这种高度的内在精准度，一旦被用于推动自己前进而不是阻止自己，会让你以一种高效而稳定的方式完成升级——而不是跌跌撞撞地冲过去。',
+        guide: [
+          '为新身份设计一个"过渡仪式"：写下"更高收入版本的我"的具体样子——他每天说什么、做什么决策、用什么标准评价自己。每天做一件"那个版本的我会做的事"。',
+          '承认转型的悲痛是真实的：你对"失去旧版本的自己"的不舍不是软弱，是人性。允许自己在升级过程中既感到兴奋，也感到悲伤——两者可以同时存在。',
+          '把"身份升级"拆解成 10 个小台阶：每个台阶只需要你比现在稍微更像"那个人"一点点。渐进的不适，比一次性的巨变更容易被神经系统接受。',
+          '主动进入更高标准场域：和比你现在层级更高的人交流、合作、甚至只是旁观——让你的神经系统开始习惯"这就是正常"。',
+          '把系统放在情绪冲刺之前：建立流程、产品、定价体系，让系统承载你的升级，而不是每次都靠情绪驱动——系统不会因为你某天状态不好而退回旧版本。'
+        ],
+        firstStep: '本周，选一件"新版本的我会做、旧版本的我不敢做"的具体行动：可以是发出一个更高的报价、公开一个新的身份定位、联系一个之前觉得"自己还不够格"的合作对象。不需要完美，只需要进入。'
+      }
+    };
+
+    /* ── State ── */
+    let current = 0;
+    const answers = Array(questions.length).fill(null);
+    let firstRender = true;
+
+    /* ── Navigation ── */
+    function startTest() {
+      document.getElementById('hero').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+      document.getElementById('result').classList.add('hidden');
+      firstRender = true;
+      renderQuestion();
+    }
+
+    function backToHero() {
+      document.getElementById('quiz').classList.add('hidden');
+      document.getElementById('result').classList.add('hidden');
+      document.getElementById('hero').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function prevQuestion() {
+      if (current === 0) return;
+      current--;
+      renderQuestion();
+    }
+
+    /* ── Render ── */
+    function renderQuestion() {
+      const card = document.getElementById('qCard');
+
+      function paint() {
+        const item   = questions[current];
+        const sel    = answers[current];
+
+        /* progress dots */
+        const dotsEl = document.getElementById('progDots');
+        dotsEl.innerHTML = '';
+        for (let i = 0; i < questions.length; i++) {
+          const d = document.createElement('div');
+          d.className = 'dot' + (i < current ? ' done' : '') + (i === current ? ' curr' : '');
+          dotsEl.appendChild(d);
+        }
+
+        /* counter */
+        document.getElementById('qCounter').textContent =
+          String(current + 1).padStart(2, '0') + ' / ' + questions.length;
+
+        /* card content */
+        document.getElementById('qNum').textContent =
+          'QUESTION ' + String(current + 1).padStart(2, '0');
+        document.getElementById('question').textContent = item.q;
+        document.getElementById('backBtn').disabled = current === 0;
+
+        const optEl = document.getElementById('options');
+        optEl.innerHTML = '';
+        item.o.forEach(([key, text]) => {
+          const btn = document.createElement('button');
+          btn.className = 'option' + (sel === key ? ' selected' : '');
+          btn.innerHTML =
+            '<span class="opt-letter">' + key + '</span>' +
+            '<span class="opt-text">' + text + '</span>';
+          btn.onclick = () => {
+            answers[current] = key;
+            document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+            btn.classList.add('selected');
+            setTimeout(() => {
+              if (current < questions.length - 1) { current++; renderQuestion(); }
+              else { showResult(); }
+            }, 210);
+          };
+          optEl.appendChild(btn);
+        });
+
+        /* fade in */
+        card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        card.style.opacity    = '1';
+        card.style.transform  = 'translateY(0)';
+      }
+
+      if (firstRender) {
+        firstRender = false;
+        card.style.cssText = 'opacity:0;transform:translateY(18px);transition:none;';
+        requestAnimationFrame(() => requestAnimationFrame(paint));
+      } else {
+        card.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+        card.style.opacity    = '0';
+        card.style.transform  = 'translateY(-10px)';
+        setTimeout(() => {
+          card.style.transition = 'none';
+          card.style.transform  = 'translateY(10px)';
+          requestAnimationFrame(() => requestAnimationFrame(paint));
+        }, 180);
+      }
+    }
+
+    /* ── Result ── */
+    function showResult() {
+      document.getElementById('quiz').classList.add('hidden');
+      document.getElementById('result').classList.remove('hidden');
+
+      const scores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+      answers.forEach(k => { if (k) scores[k]++; });
+      const top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+      const r   = results[top];
+
+      const guideHtml = r.guide.map(x => '<li>' + x + '</li>').join('');
+
+      document.getElementById('resultContent').innerHTML =
+        '<div class="res-header">' +
+          '<div class="res-eyebrow">你的财富心理结果</div>' +
+          '<h2 class="res-title">' + r.title + '</h2>' +
+          '<div class="res-badge">' +
+            '<span class="badge-dot" style="background:' + r.badgeColor + '"></span>' + r.badge +
+          '</div>' +
+          '<div class="core-belief">' + r.corebelief + '</div>' +
+        '</div>' +
+        '<div class="res-divider"></div>' +
+        '<div class="res-sections">' +
+          '<div class="r-sec">' +
+            '<div class="r-sec-label">Section 01</div>' +
+            '<h3>你的财富卡点是什么</h3>' +
+            '<p>' + r.intro + '</p>' +
+          '</div>' +
+          '<div class="r-sec">' +
+            '<div class="r-sec-label">Section 02</div>' +
+            '<h3>深层心理机制</h3>' +
+            '<p>' + r.essence + '</p>' +
+            '<p>' + r.pattern + '</p>' +
+          '</div>' +
+          '<div class="r-sec">' +
+            '<div class="r-sec-label">Section 03</div>' +
+            '<h3>如果继续这样，会发生什么</h3>' +
+            '<p>' + r.risk + '</p>' +
+          '</div>' +
+          '<div class="r-sec gift-block">' +
+            '<div class="r-sec-label">Section 04</div>' +
+            '<h3>卡点里藏着的礼物</h3>' +
+            '<p>' + r.gift + '</p>' +
+          '</div>' +
+          '<div class="r-sec">' +
+            '<div class="r-sec-label">Section 05</div>' +
+            '<h3>操作指南</h3>' +
+            '<ul>' + guideHtml + '</ul>' +
+          '</div>' +
+          '<div class="r-sec">' +
+            '<div class="r-sec-label">Section 06</div>' +
+            '<h3>你的第一步</h3>' +
+            '<p>' + r.firstStep + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="res-footer">' +
+          '<button class="restart-btn" onclick="location.reload()">重新测试</button>' +
+        '</div>';
+
+      /* staggered section entrance */
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const els = document.querySelectorAll('.r-sec, .quote-block');
+      els.forEach((el, i) => {
+        setTimeout(() => {
+          el.style.opacity   = '1';
+          el.style.transform = 'translateY(0)';
+        }, 80 + i * 70);
+      });
+    }
+  </script>
+</body>
+</html>
